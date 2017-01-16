@@ -6,7 +6,7 @@ getAlgoWeights <- function(sliderWeight){
   return(weight)
 }
 
-createGroups <- function(dat,weight,colTypes,groupSize,importantTags=NULL,excludeTags=NULL,hardSepComb=NULL,assignTagWeightByFreq=T,numberOfGroup=NULL){
+createGroups <- function(dat,weight,colTypes,groupSize,importantTags=NULL,excludeTags=NULL,hardSepComb=NULL,assignTagWeightByFreq=T,numberOfGroup=NULL,warningMsgs=character()){
   dat[dat==""] <- NA # this is required to treat blanks as missing value (which matches with anything) else, separation/combination will try to match blanks
   if(!is.null(numberOfGroup)){ # numberOfGroup if mentioned than that gets priority, ideally both of them should not be allowed to be specified but to have minimum disrupt to old code, this hack is used.
     groupSize <- floor(nrow(dat)/numberOfGroup)
@@ -22,7 +22,8 @@ createGroups <- function(dat,weight,colTypes,groupSize,importantTags=NULL,exclud
   importantTags <- gsub(pattern = " ",replacement = "_",x = importantTags) # replace space by underscore since later on anyways they will be replaced
   clusInfo <- list(sliderWeight=sliderWeight,weight=weight,colTypes=colTypes,numberOfGroup=numberOfGroup,
                    idealClusterSize=groupSize,datColNames=names(dat),distanceType="SimilarityBased",
-                   importantTags=importantTags,excludeTags=excludeTags,hardSepComb=hardSepComb)
+                   importantTags=importantTags,excludeTags=excludeTags,hardSepComb=hardSepComb,
+                   warningMsgs=warningMsgs)
   dat <- setupTimeZoneColumn(dat,clusInfo)
   dat <- setupDocumentTermFrequencyForTextCols(dat,clusInfo)
   clusInfo$columnTermFrequencyColumnMapping <- getColumnTermFrequencyColumnMapping(dat,clusInfo)
@@ -42,9 +43,9 @@ createGroups <- function(dat,weight,colTypes,groupSize,importantTags=NULL,exclud
     clusInfo <- balanceExplicitCombConstraint(clusInfo)
     print(paste0("Explicit hard separation combination done... ",Sys.time()))
   }
-  #   try({clusInfo$teamProfileData <- profileAllTeams(dat,clusInfo)
-  #   clusInfo$clusterPerformance <- getClusteringPerformance(dat,clusInfo) 
-  #   print(paste0("Team profiling done... ",Sys.time()))})
+  try({clusInfo$teamProfileData <- profileAllTeams(dat,clusInfo)
+  clusInfo$clusterPerformance <- getClusteringPerformance(dat,clusInfo) 
+  print(paste0("Team profiling done... ",Sys.time()))})
   
   return(clusInfo)
 }
